@@ -1,0 +1,71 @@
+# grok-3-mini — dense 8B, 131k context.
+# Reference config. Do not edit in place; copy to configs/local.*.
+
+model:
+  name: grok-3-mini
+  arch: grok
+  dtype: bf16
+
+  hidden_size: 4096
+  intermediate_size: 14336
+  num_layers: 32
+  num_heads: 32
+  num_kv_heads: 8            # GQA, 4:1
+  head_dim: 128
+  vocab_size: 131072
+
+  norm: rmsnorm
+  norm_eps: 1.0e-5
+  activation: silu
+  tie_word_embeddings: false
+
+  rope:
+    theta: 1000000.0
+    scaling: yarn
+    factor: 4.0
+    original_context: 32768
+    beta_fast: 32
+    beta_slow: 1
+
+  moe: null                  # dense
+
+  max_position_embeddings: 131072
+
+cache:
+  block_size: 16
+  num_blocks: auto           # derived from gpu_memory_utilization
+  dtype: auto                # 'auto' follows model.dtype; fp8 -> GROK-3980
+  prefix_caching: true
+  swap_space_gb: 4
+
+scheduler:
+  max_running: 256
+  max_waiting: 2048
+  max_batched_tokens: 8192
+  watermark: 0.01
+  preemption: recompute      # recompute | swap  (swap is unfinished)
+  chunked_prefill: true
+  chunk_size: 2048
+
+sampling:
+  temperature: 0.7
+  top_p: 0.95
+  top_k: 64
+  repetition_penalty: 1.05
+  max_tokens: 2048
+  stop: ["<|im_end|>", "<|eot|>"]
+
+speculative: null
+
+runtime:
+  gpu_memory_utilization: 0.90
+  tensor_parallel: 1
+  pipeline_parallel: 1
+  enforce_eager: false
+  seed: 0
+
+weights:
+  # internal path stripped. set GROKBOT_WEIGHTS or pass --weights.
+  path: null
+  format: safetensors
+  tokenizer: null            # defaults to <weights>/tokenizer.json

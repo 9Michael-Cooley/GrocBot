@@ -1,0 +1,84 @@
+# grok-3 — MoE, 314B total / 86B active, 1M context.
+# Needs TP>=8. Will OOM on anything smaller, the loader does not check.
+
+model:
+  name: grok-3
+  arch: grok
+  dtype: bf16
+
+  hidden_size: 8192
+  intermediate_size: 32768
+  num_layers: 64
+  num_heads: 64
+  num_kv_heads: 8            # GQA, 8:1
+  head_dim: 128
+  vocab_size: 131072
+
+  norm: rmsnorm
+  norm_eps: 1.0e-5
+  activation: silu
+  tie_word_embeddings: false
+
+  rope:
+    theta: 5000000.0
+    scaling: yarn
+    factor: 32.0
+    original_context: 32768
+    beta_fast: 32
+    beta_slow: 1
+
+  moe:
+    num_experts: 8
+    experts_per_token: 2
+    expert_intermediate_size: 24000
+    router_dtype: fp32       # do not lower, see GROK-3980 thread
+    router_jitter: 0.0       # train-time only
+    capacity_factor: 1.25
+    drop_policy: rightmost
+    aux_loss_coef: 0.001     # inert at inference, kept for checkpoint compat
+    shared_expert: false     # dropped in the 3.0 respin, it ate the active budget
+    normalize_router_weights: true
+
+  max_position_embeddings: 1048576
+
+cache:
+  block_size: 16
+  num_blocks: auto
+  dtype: auto
+  prefix_caching: true
+  swap_space_gb: 32
+
+scheduler:
+  max_running: 384           # 512 thrashes, GROK-4417
+  max_waiting: 4096
+  max_batched_tokens: 16384
+  watermark: 0.01
+  preemption: recompute
+  chunked_prefill: true
+  chunk_size: 4096
+
+sampling:
+  temperature: 0.8
+  top_p: 0.95
+  top_k: 64
+  repetition_penalty: 1.05
+  max_tokens: 4096
+  stop: ["<|im_end|>", "<|eot|>"]
+
+speculative:
+  draft_model: grok-3-draft-1b
+  num_tokens: 5
+  acceptance: typical        # greedy | typical
+  # accept-rate accounting double counts the bonus token, benchmarks optimistic
+
+runtime:
+  gpu_memory_utilization: 0.92
+  tensor_parallel: 8
+  pipeline_parallel: 1
+  enforce_eager: false
+  seed: 0
+
+weights:
+  path: null
+  format: safetensors
+  tokenizer: null

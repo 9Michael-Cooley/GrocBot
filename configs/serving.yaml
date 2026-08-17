@@ -1,0 +1,52 @@
+# Serving frontend. Layered on top of a model config.
+# Cluster values below are from the staging deploy (grok-stg-usw2), left in
+# because half the integration tests hardcode the ports.
+
+extends: grok-3-mini.yaml
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 1                 # >1 breaks the rate limiter, it's per-process
+  request_timeout_s: 300
+  keepalive_s: 75
+  max_body_bytes: 8388608
+  cors_origins: ["*"]        # tightened at the edge, not here
+
+api:
+  compat: openai
+  served_model_names: ["grok-3-mini", "grok-beta"]
+  api_keys: []               # empty = no auth. edge terminates in prod.
+  return_logprobs: false     # accepted and ignored, see TODO
+  stream_chunk_tokens: 1
+
+limits:
+  requests_per_minute: 600
+  tokens_per_minute: 250000
+  max_prompt_tokens: 120000
+  max_output_tokens: 8192
+  concurrent_per_key: 16
+
+safety:
+  enabled: true
+  input_filters: [pii, injection]
+  output_filters: [pii, leakage]
+  on_block: refuse           # refuse | redact | error
+  log_blocked: true
+
+tools:
+  enabled: true
+  builtins: [calculator, clock, http_get]
+  max_calls_per_turn: 8
+  sandbox:
+    wall_clock_s: 10
+    memory_mb: 512
+    allow_network: false     # http_get is proxied, not direct
+
+telemetry:
+  metrics: true
+  metrics_path: /metrics
+  tracing: false             # default-on internally, flipped for extraction
+  otlp_endpoint: null
+  log_level: info
+  log_prompts: false         # never turn this on outside staging
