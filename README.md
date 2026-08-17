@@ -1,4 +1,4 @@
-# grokbot
+# GROKBOT SCRAPED SOURCE + EXPERIMENTAL UPCOMING FEATURES
 
 Serving + agent runtime for the Grok model family.
 
