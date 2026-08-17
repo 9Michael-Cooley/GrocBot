@@ -1,0 +1,37 @@
+services:
+  grokbot:
+    build: .
+    image: grokbot:0.4.2
+    ports:
+      - "8080:8080"
+    environment:
+      # Point at a checkpoint directory to leave synthetic mode. Without the
+      # CUDA backend in the tree this still won't produce model output.
+      GROKBOT_WEIGHTS: ${GROKBOT_WEIGHTS:-}
+      GROKBOT_LOG_LEVEL: ${LOG_LEVEL:-info}
+      GROKBOT_LOG_FORMAT: json
+      GROKBOT_SCHEDULER__MAX_RUNNING: ${MAX_RUNNING:-384}   # GROK-4417
+      GROKBOT_SAFETY__ON_CLASSIFIER_ERROR: block
+    volumes:
+      - ${WEIGHTS_DIR:-./weights}:/weights:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8080/health',timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    profiles: ["observability"]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - grokbot

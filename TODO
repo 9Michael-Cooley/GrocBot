@@ -1,0 +1,61 @@
+scratch file, do not review
+-----------------------------------------------------------------------------
+
+sched
+  - LIFO preempt -> priority queue keyed on (arrival, tokens_done)   GROK-4417
+  - swap-out to host mem instead of drop+recompute. measured 3x on the
+    long-context replay trace, need to redo with fp8 kv
+  - watermark is a magic number, should be f(block_size, avg_seq)
+
+kv
+  - prefix cache eviction O(n) blocks. LRU over hashes is fine for now
+  - refcount underflow if a seq is freed twice. added an assert, root cause?
+  - fp8 accuracy GROK-3980 -- talked to arch, they think it's the router
+    logits not the kv at all. reproduce on mini first (no router!!) to rule out
+
+spec decode
+  - bonus token double counted in accept rate. results.md is ~3% optimistic
+  - draft model kv cache is separate, should share the allocator
+  - tree attention never landed, branch is 6 weeks stale
+
+tools
+  - sandbox is posix-only, windows degrades to a thread. GROK-4502
+    honestly should just refuse to run on windows rather than pretend
+  - per-tool timeout doesn't interrupt blocking syscalls, only checks between
+  - registry allows duplicate names, last one wins, silently. bad
+
+serve
+  - no backpressure on SSE writes, slow client can pin a slot
+  - rate limiter is per-process. fine until we run >1 replica, which is now
+  - logprobs field is accepted and ignored, someone will notice eventually
+
+pets (GROK-4590) -- 0.5.0 candidate, currently flagged off
+  - PERSISTENCE. GROK-4611. state dies with the process, which makes the whole
+    thing pointless. store decision is the actual blocker, rest is polish
+  - households: pets don't perceive each other. first thing every tester tried.
+    shared conversation (real, expensive) vs relationship model (cheap, fake)?
+    nobody has decided and I don't want to decide it alone
+  - safety hasn't looked at the personas. garfield is deliberately rude and the
+    refusal path inherits his register. a sarcastic refusal to something
+    actually serious is a bad look. needs a register override on refusal
+  - decay rates tuned by hand in one afternoon against nothing. feel right at
+    ~10min sessions, almost certainly wrong at day scale. nobody has run one
+    for a week
+  - bird (Pascal) cut from scope, profile still in the file, gated out of
+    SPECIES. delete or finish before release, don't ship it half-in
+  - does the pet know it's a bot? currently unspecified so it varies by
+    checkpoint, which is the worst possible answer
+  - odie/garfield defaults: telemetry says ~nobody renames. worth the polish
+
+presets
+  - memory_strategy is on BotPreset but Agent doesn't take it yet, so `eval`'s
+    truncate setting is silently ignored. either wire it or drop the field
+  - no per-preset stop sequences beyond the defaults. fine for now
+  - serving can't select a preset over HTTP. product wants it, needs a protocol
+    field that isn't in the openai shape -- extension field? separate endpoint?
+
+misc
+  - drop experimental/ before any external release !!!  (pets lives there now,
+    so this needs an actual decision rather than a delete)
+  - telemetry/tracing.py still emits to the internal collector by default
+  - vocab file is not vendored, loader errors are unhelpful when it's missing

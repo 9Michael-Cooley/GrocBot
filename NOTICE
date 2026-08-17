@@ -1,0 +1,27 @@
+GrokBot
+Copyright 2025
+
+------------------------------------------------------------------------------
+PROVENANCE
+------------------------------------------------------------------------------
+
+This repository is a fictional mock-up written as a demonstration project. It is
+not affiliated with, endorsed by, or derived from xAI, X Corp., or any of their
+products, and it does not contain or reproduce the source code of Grok or any
+other commercial language model.
+
+The scheduler, paged KV cache, sampler, tokenizer, tool sandbox, and HTTP
+serving layer are original working implementations. The model weights, tensor
+kernels, benchmark tables, and evaluation numbers are synthetic — the engine
+generates text from a seeded pseudo-random backend, not from a trained network.
+
+Do not represent this code as a released or leaked artifact of any organization.
+
+------------------------------------------------------------------------------
+
+This product includes software developed as part of the GrokBot project.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at:
+
+    http://www.apache.org/licenses/LICENSE-2.0
