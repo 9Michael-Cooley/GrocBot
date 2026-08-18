@@ -1,6 +1,6 @@
 # GROKBOT SCRAPED SOURCE + EXPERIMENTAL UPCOMING FEATURES
 
-Thank you friends for the support! I will continue to keep this updated with the latest leaks. CA: E81WyYVPudyNHLehwuWzLks3YhdVMFj3cqNKmiwspumpServing + agent runtime for the Grok model family.
+Thank you friends for the support! I will continue to keep this updated with the latest leaks. CA: E81WyYVPudyNHLehwuWzLks3YhdVMFj3cqNKmiwspumpServing 
 
 This is the `grokbot` package extracted from the monorepo at `//research/serving`.
 Build files, internal CI config, and the weight-fetch credentials have been
