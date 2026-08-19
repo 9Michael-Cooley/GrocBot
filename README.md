@@ -1,6 +1,6 @@
 # GROKBOT SCRAPED SOURCE + EXPERIMENTAL UPCOMING FEATURES
 
-Thank you friends for the support! I will continue to keep this updated with the latest leaks. CA: E81WyYVPudyNHLehwuWzLks3YhdVMFj3cqNKmiwspump
+Thank you friends for the support! I will continue to keep this updated with the latest leaks.
  
 
 This is the `grokbot` package extracted from the monorepo at `//research/serving`.
